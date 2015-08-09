@@ -54,7 +54,7 @@ class VAE(FunctionSet):
         return rec_loss, KLD, output
 
 
-    def generate(self, latent_data, n_layers_gen, nonlinear_p='softplus'):
+    def generate(self, latent_data, n_layers_gen, nonlinear_p='relu'):
         latent = Variable(latent_data)
         chain = [latent]
 
