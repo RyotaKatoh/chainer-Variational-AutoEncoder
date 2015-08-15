@@ -19,16 +19,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir',       type=str,   default="dataset")
 parser.add_argument('--output_dir',     type=str,   default="model")
 parser.add_argument('--dataset',        type=str,   default="mnist")
-parser.add_argument('--log_dir',        type=str,   default="log")
 parser.add_argument('--gpu',            type=int,   default=-1)
 
 args = parser.parse_args()
 
 if not os.path.exists(args.output_dir):
     os.mkdir(args.output_dir)
-
-if not os.path.exists(args.log_dir):
-    os.mkdir(args.log_dir)
 
 np.random.seed(123)
 
@@ -57,7 +53,28 @@ if args.dataset == 'mnist':
     n_z     = 50
     n_y     = 10
     n_batch = 1000
-    n_epochs    = 100
+    n_epochs    = 1000
+    output_f = 'sigmoid'
+
+elif args.dataset == "svhn":
+    size = 32
+    train_x, train_y, test_x, test_y = dataset.load_svhn(args.data_dir, binarize_y=True)
+    n_x = train_x.shape[1]
+    n_hidden = [500, 500]
+    n_z = 100
+    n_y = 10
+    n_batch = 1
+    n_epochs = 1000
+    output_f = 'sigmoid'
+
+    #
+    # x = {'x': np.hstack((train_x, extra_x)), 'y':np.hstack((train_y, extra_y))}
+    # ndict.shuffleCols(x)
+
+    #f_enc, f_dec, (x_sd, x_mean) = pp.preprocess_normalize01(train_x, True)
+    # f_enc, f_dec, pca_params = pp.PCA(x['x'][:,:10000], cutoff=1000, toFloat=True)
+    # ndict.savez(pca_params, logdir+'pca_params')
+
 
 
 
@@ -129,15 +146,17 @@ for epoch in xrange(1, n_epochs + 1):
 
         optimizer.zero_grads()
 
-        rec_loss, kl_loss, output = model.forward_one_step(x_batch, y_batch, n_layers_recog, n_layers_gen, 'relu', 'relu', gpu=args.gpu)
+
+        rec_loss, kl_loss, output = model.forward_one_step(x_batch, y_batch, n_layers_recog, n_layers_gen, 'relu', 'relu', output_f, gpu=args.gpu)
         loss = rec_loss + kl_loss
         total_loss += loss
-        total_losses[epoch-1] = total_loss.data
         loss.backward()
         optimizer.update()
 
-
-    rec_loss, kl_loss, _ = model.forward_one_step(x_batch, y_batch, n_layers_recog, n_layers_gen, 'relu', 'relu', gpu=args.gpu)
+    if args.gpu >= 0:
+        total_losses[epoch-1] = cuda.to_cpu(total_loss.data)
+    else:
+        total_losses[epoch-1] = total_loss.data
     print rec_loss.data, kl_loss.data
     print total_loss.data
     print "time:", time.time()-t1

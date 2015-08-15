@@ -2,8 +2,12 @@ import gzip
 import os
 
 import numpy as np
+import cPickle as pickle
 import six
 from six.moves.urllib import request
+import scipy
+from scipy import io
+from sklearn import decomposition
 
 parent = 'http://yann.lecun.com/exdb/mnist'
 train_images = 'train-images-idx3-ubyte.gz'
@@ -120,6 +124,73 @@ def load_mnist_data(data_dir):
     with open('%s/mnist/mnist.pkl' % data_dir, 'rb') as mnist_pickle:
         mnist = six.moves.cPickle.load(mnist_pickle)
     return mnist
+
+'''
+SVHN
+
+'''
+
+def svhn_pickle_checker(data_dir):
+    if os.path.exists(data_dir+'/SVHN/train_x.pkl') and os.path.exists(data_dir+'/SVHN/train_y.pkl') \
+        and os.path.exists(data_dir+'/SVHN/test_x.pkl') and os.path.exists(data_dir+'/SVHN/test_y.pkl'):
+        return 1
+    else:
+        return 0
+
+def load_svhn(data_dir, toFloat=True, binarize_y=True, dtype=np.float32, pca=True, n_components=1000):
+
+    # if svhn_pickle_checker(data_dir) == 1:
+    #     print "load from pickle file."
+    #     train_x = pickle.load(open(data_dir+'/SVHN/train_x.pkl'))
+    #     train_y = pickle.load(open(data_dir+'/SVHN/train_y.pkl'))
+    #     test_x  = pickle.load(open(data_dir+'/SVHN/test_x.pkl'))
+    #     test_y  = pickle.load(open(data_dir+'/SVHN/test_y.pkl'))
+    #
+    #     return train_x, train_y, test_x, test_y
+
+
+    train = scipy.io.loadmat(data_dir+'/SVHN/train_32x32.mat')
+    train_x = train['X'].swapaxes(0,1).T.reshape((train['X'].shape[3], -1))
+    train_y = train['y'].reshape((-1)) - 1
+    test = scipy.io.loadmat(data_dir+'/SVHN/test_32x32.mat')
+    test_x = test['X'].swapaxes(0,1).T.reshape((test['X'].shape[3], -1))
+    test_y = test['y'].reshape((-1)) - 1
+    if toFloat:
+        train_x = train_x.astype(dtype)/256.
+        test_x = test_x.astype(dtype)/256.
+    if binarize_y:
+        train_y = binarize_labels(train_y)
+        test_y = binarize_labels(test_y)
+
+    # if pca:
+    #     x_stack = np.vstack([train_x, test_x])
+    #     pca = decomposition.PCA(n_components=n_components)
+    #     pca.whiten=True
+    #     # pca.fit(x_stack)
+    #     # x_pca = pca.transform(x_stack)
+    #     x_pca = pca.fit_transform(x_stack)
+    #     train_x = x_pca[:train_x.shape[0], :]
+    #     test_x = x_pca[train_x.shape[0]:, :]
+    #
+    #     with open('%s/SVHN/pca.pkl' % data_dir, "wb") as f:
+    #         pickle.dump(pca, f)
+    #     with open('%s/SVHN/train_x.pkl' % data_dir, "wb") as f:
+    #         pickle.dump(train_x, f)
+    #     with open('%s/SVHN/train_y.pkl' % data_dir, "wb") as f:
+    #         pickle.dump(train_y, f)
+    #     with open('%s/SVHN/test_x.pkl' % data_dir, "wb") as f:
+    #         pickle.dump(test_x, f)
+    #     with open('%s/SVHN/test_y.pkl' % data_dir, "wb") as f:
+    #         pickle.dump(test_y, f)
+
+    return train_x, train_y, test_x, test_y
+
+def binarize_labels(y, n_classes=10):
+    new_y = np.zeros((y.shape[0], n_classes))
+    for i in range(y.shape[0]):
+        new_y[i, y[i]] = 1
+    return new_y.astype(np.float32)
+
 
 
 '''

@@ -5,6 +5,7 @@ import argparse
 import cPickle as pickle
 from scipy import misc
 import dataset
+from sklearn import decomposition
 
 from chainer import cuda, Variable, function, FunctionSet, optimizers
 from chainer import functions as F
@@ -40,6 +41,18 @@ if args.dataset == 'mnist':
     n_hidden= [500, 500]
     n_z     = 50
     n_y     = 10
+    output_f= 'sigmoid'
+
+if args.dataset == 'svhn':
+    size = 32
+    im_size = (size, size, 3)
+    train_x, train_y, test_x, test_y = dataset.load_svhn(args.data_dir, binarize_y=True)
+    pca = pickle.load(open(args.data_dir+"/SVHN/pca.pkl"))
+    n_x = train_x.shape[1]
+    n_hidden = [500, 500]
+    n_z = 100
+    n_y = 10
+    output_f = 'identity'
 
 
 model = pickle.load(open(args.model, "rb"))
@@ -48,17 +61,25 @@ if not os.path.exists(args.output_dir):
     os.mkdir(args.output_dir)
 
 n_sample = 10
-sample_x = test_x[:n_sample]
-sample_y = test_y[:n_sample]
+sample_x = test_x[n_sample:n_sample*2]
+sample_y = test_y[n_sample:n_sample*2]
 
 n_layers_recog = n_layers_gen = len(n_hidden)
 
 for i in range(n_sample):
-    generated_output = model.generate(sample_x[i].reshape((1, sample_x.shape[1])), sample_y[i].reshape((1, sample_y.shape[1])), n_layers_recog, n_layers_gen)
+    generated_output = model.generate(sample_x[i].reshape((1, sample_x.shape[1])), sample_y[i].reshape((1, sample_y.shape[1])), n_layers_recog, n_layers_gen, nonlinear_q='relu', nonlinear_p='relu', output_f=output_f)
 
-    im = sample_x[i].reshape(im_size)
+    if args.dataset == 'mnist':
+        im = sample_x[i].reshape(im_size)
+    elif args.dataset == 'svhn':
+        im_decode = pca.inverse_transform(sample_x[i])
+        im = im_decode.reshape((3, size, size)).T.swapaxes(0,1)
     misc.imsave('%s/%d_teacher.jpg' % (args.output_dir, i) , im)
 
     for j in range(sample_y.shape[1]):
-        im = generated_output[j].reshape(im_size)
+        if args.dataset == 'mnist':
+            im = generated_output[j].reshape(im_size)
+        elif args.dataset == 'svhn':
+            im_decode = pca.inverse_transform(generated_output[j])
+            im = im_decode.reshape((3, size, size)).T.swapaxes(0,1)
         misc.imsave('%s/%d_%d_gen.jpg' % (args.output_dir, i, j) , im)
