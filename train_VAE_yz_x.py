@@ -63,7 +63,7 @@ elif args.dataset == "svhn":
     n_hidden = [500, 500]
     n_z = 100
     n_y = 10
-    n_batch = 1
+    n_batch = 1000
     n_epochs = 1000
     output_f = 'sigmoid'
 

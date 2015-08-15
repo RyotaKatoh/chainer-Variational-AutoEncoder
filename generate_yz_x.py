@@ -12,10 +12,11 @@ from chainer import functions as F
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model',          type=str,   required=True)
-parser.add_argument('--data_dir',         type=str,   default="dataset")
+parser.add_argument('--data_dir',       type=str,   default="dataset")
 parser.add_argument('--output_dir',     type=str,   default="generated_yz_x")
 parser.add_argument('--dataset',        type=str,   default="mnist")
 parser.add_argument('--gpu',            type=int,   default=-1)
+parser.add_argument('--n_samples',      type=int,   default=10)
 
 args = parser.parse_args()
 
@@ -42,6 +43,7 @@ if args.dataset == 'mnist':
     n_z     = 50
     n_y     = 10
     output_f= 'sigmoid'
+    output_image = np.zeros((size, size*(n_y+1)))
 
 if args.dataset == 'svhn':
     size = 32
@@ -52,7 +54,8 @@ if args.dataset == 'svhn':
     n_hidden = [500, 500]
     n_z = 100
     n_y = 10
-    output_f = 'identity'
+    output_f = 'sigmoid'
+    output_image = np.zeros((size, size*(n_y+1), 3))
 
 
 model = pickle.load(open(args.model, "rb"))
@@ -60,26 +63,32 @@ model = pickle.load(open(args.model, "rb"))
 if not os.path.exists(args.output_dir):
     os.mkdir(args.output_dir)
 
-n_sample = 10
-sample_x = test_x[n_sample:n_sample*2]
-sample_y = test_y[n_sample:n_sample*2]
+indexes = np.random.permutation(test_x.shape[0])
+
+n_sample = args.n_samples
+sample_x = test_x[indexes[0:n_sample]]
+sample_y = test_y[indexes[0:n_sample]]
 
 n_layers_recog = n_layers_gen = len(n_hidden)
+
 
 for i in range(n_sample):
     generated_output = model.generate(sample_x[i].reshape((1, sample_x.shape[1])), sample_y[i].reshape((1, sample_y.shape[1])), n_layers_recog, n_layers_gen, nonlinear_q='relu', nonlinear_p='relu', output_f=output_f)
 
     if args.dataset == 'mnist':
         im = sample_x[i].reshape(im_size)
+        output_image[:,0:im_size[1]] = im
     elif args.dataset == 'svhn':
-        im_decode = pca.inverse_transform(sample_x[i])
-        im = im_decode.reshape((3, size, size)).T.swapaxes(0,1)
-    misc.imsave('%s/%d_teacher.jpg' % (args.output_dir, i) , im)
+        im = sample_x[i].reshape((3, size, size)).T.swapaxes(0,1)
+        output_image[:, 0:im_size[1], :] = im
+
 
     for j in range(sample_y.shape[1]):
         if args.dataset == 'mnist':
             im = generated_output[j].reshape(im_size)
+            output_image[:, (j+1)*im_size[1]:(j+2)*im_size[1]] = im
         elif args.dataset == 'svhn':
-            im_decode = pca.inverse_transform(generated_output[j])
-            im = im_decode.reshape((3, size, size)).T.swapaxes(0,1)
-        misc.imsave('%s/%d_%d_gen.jpg' % (args.output_dir, i, j) , im)
+            im = generated_output[j].reshape((3, size, size)).T.swapaxes(0,1)
+            output_image[:, (j+1)*im_size[1]:(j+2)*im_size[1], :] = im
+
+    misc.imsave('%s/%d.jpg' % (args.output_dir, i) , output_image)
