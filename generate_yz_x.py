@@ -52,7 +52,7 @@ if args.dataset == 'svhn':
     pca = pickle.load(open(args.data_dir+"/SVHN/pca.pkl"))
     n_x = train_x.shape[1]
     n_hidden = [500, 500]
-    n_z = 100
+    n_z = 300
     n_y = 10
     output_f = 'sigmoid'
     output_image = np.zeros((size, size*(n_y+1), 3))

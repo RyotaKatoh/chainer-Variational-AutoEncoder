@@ -61,7 +61,7 @@ elif args.dataset == "svhn":
     train_x, train_y, test_x, test_y = dataset.load_svhn(args.data_dir, binarize_y=True)
     n_x = train_x.shape[1]
     n_hidden = [500, 500]
-    n_z = 100
+    n_z = 300
     n_y = 10
     n_batch = 1000
     n_epochs = 1000
