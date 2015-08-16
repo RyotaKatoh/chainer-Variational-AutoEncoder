@@ -48,7 +48,9 @@ To generate movies of flying through latent-space of the M2 model, run:
 $python run_flying.py --dataset [dataset] --model [model/created_model.pkl] --output_file [output file name]
 ```
 where dataset is 'mnist' or 'svhn', and output_file is the filename to save the movie file to.
+
 NOTE: This script requires ffmpeg to be installed.
+
 NOTE: Unzip sample model saved in model folder
 
 ## ToDo
