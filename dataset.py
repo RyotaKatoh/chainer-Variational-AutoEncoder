@@ -137,7 +137,7 @@ def download_svhn_data(data_dir):
     test_images = 'test_32x32.mat'
 
     data_path = data_dir+"/SVHN/"
-    if os.path.exists(data_path):
+    if not os.path.exists(data_path):
         os.mkdir(data_path)
 
     print('Downloading {:s}...'.format(train_images))
@@ -157,7 +157,7 @@ def svhn_pickle_checker(data_dir):
     else:
         return 0
 
-def load_svhn(data_dir, toFloat=True, binarize_y=True, dtype=np.float32, pca=True, n_components=1000):
+def load_svhn(data_dir, toFloat=True, binarize_y=True, dtype=np.float32, pca=False, n_components=1000):
 
     # if svhn_pickle_checker(data_dir) == 1:
     #     print "load from pickle file."
@@ -168,7 +168,7 @@ def load_svhn(data_dir, toFloat=True, binarize_y=True, dtype=np.float32, pca=Tru
     #
     #     return train_x, train_y, test_x, test_y
 
-    if os.path.exists(data_dir+'/SVHN/train_32x32.mat') and os.path.exists(data_dir+'/SVHN/test_32x32.mat'):
+    if not os.path.exists(data_dir+'/SVHN/train_32x32.mat') or not os.path.exists(data_dir+'/SVHN/test_32x32.mat'):
         download_svhn_data(data_dir)
 
     train = scipy.io.loadmat(data_dir+'/SVHN/train_32x32.mat')
