@@ -46,7 +46,7 @@ if args.dataset == 'mnist':
     x_size  = size*size
     output_f= 'sigmoid'
     n_layers_recog = n_layers_gen = len(n_hidden)
-    output_image = np.zeros((n_batch_w*imsize[0], n_y*im_size[1]))
+    output_image = np.zeros((n_batch_w*im_size[0], n_y*im_size[1]))
 
 if args.dataset == 'svhn':
     size = 32
