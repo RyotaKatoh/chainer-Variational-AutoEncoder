@@ -49,7 +49,7 @@ if args.dataset == 'svhn':
     size = 32
     im_size = (size, size, 3)
     train_x, train_y, test_x, test_y = dataset.load_svhn(args.data_dir, binarize_y=True)
-    pca = pickle.load(open(args.data_dir+"/SVHN/pca.pkl"))
+    # pca = pickle.load(open(args.data_dir+"/SVHN/pca.pkl"))
     n_x = train_x.shape[1]
     n_hidden = [500, 500]
     n_z = 300
