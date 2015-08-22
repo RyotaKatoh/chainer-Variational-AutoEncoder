@@ -94,7 +94,7 @@ layers = {}
 rec_layer_sizes = []
 rec_layer_sizes += zip(n_hidden_recog[:-1], n_hidden_recog[1:])
 
-layers['recog_x'] = F.Linear(train_x.shape[1], n_hidden_recog[0])
+layers['recog_x'] = F.Linear(train_x.shape[1], n_hidden_recog[0], nobias=True)
 layers['recog_y'] = F.Linear(train_y.shape[1], n_hidden_recog[0])
 
 for i, (n_incoming, n_outgoing) in enumerate(rec_layer_sizes):
@@ -108,7 +108,7 @@ gen_layer_sizes = []
 gen_layer_sizes += zip(n_hidden_gen[:-1], n_hidden_gen[1:])
 
 layers['gen_y'] = F.Linear(train_y.shape[1], n_hidden_gen[0])
-layers['gen_z'] = F.Linear(n_z, n_hidden_gen[0])
+layers['gen_z'] = F.Linear(n_z, n_hidden_gen[0], nobias=True)
 
 for i, (n_incoming, n_outgoing) in enumerate(gen_layer_sizes):
     layers['gen_%i' % i] = F.Linear(n_incoming, n_outgoing)

@@ -94,7 +94,6 @@ if args.gpu >= 0:
     cuda.init(args.gpu)
     model.to_gpu()
 
-print len(layers)
 
 # use Adam
 optimizer = optimizers.Adam()

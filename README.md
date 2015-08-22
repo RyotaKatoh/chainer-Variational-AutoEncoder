@@ -62,4 +62,5 @@ NOTE: Unzip sample model saved in model folder
 * Justin Bayer's Chainer based Variational Auto Encoder
 http://nbviewer.ipython.org/gist/duschendestroyer/a41fcab5f7f9ffa45387
 * http://papers.nips.cc/paper/5352-semi-supervised-learning-with-deep-generative-models.pdf
+* https://github.com/dpkingma/nips14-ssl
 * http://www.slideshare.net/beam2d/semisupervised-learning-with-deep-generative-models
